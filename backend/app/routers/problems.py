@@ -105,7 +105,7 @@ def list_topics():
 
 @router.post("/sync", response_model=SyncResult)
 def sync_problems():
-    """Re-read seed JSON and insert any new problems."""
+    """Re-read seed JSON and sync all problems (insert/update/delete)."""
     conn = get_connection()
     before = conn.execute("SELECT COUNT(*) as c FROM problems").fetchone()["c"]
     conn.close()
@@ -116,4 +116,5 @@ def sync_problems():
     after = conn.execute("SELECT COUNT(*) as c FROM problems").fetchone()["c"]
     conn.close()
 
-    return SyncResult(added=after - before, total=after)
+    diff = after - before
+    return SyncResult(added=diff if diff > 0 else 0, total=after)
