@@ -61,7 +61,8 @@ export default function CalendarHeatmap({ activity }: Props) {
 
   const cellSize = 14;
   const gap = 3;
-  const dayLabels = ["", "Mon", "", "Wed", "", "Fri", ""];
+  const leftPad = 40;
+  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const monthLabels: { label: string; x: number }[] = [];
   let lastMonth = -1;
@@ -92,17 +93,17 @@ export default function CalendarHeatmap({ activity }: Props) {
     <div className="calendar-heatmap">
       <div className="heatmap-scroll">
         <svg
-          width={weeks.length * (cellSize + gap) + 30}
+          width={weeks.length * (cellSize + gap) + leftPad}
           height={7 * (cellSize + gap) + 25}
         >
           {monthLabels.map((m, i) => (
-            <text key={i} x={m.x + 30} y={12} className="heatmap-month-label">
+            <text key={i} x={m.x + leftPad} y={12} className="heatmap-month-label">
               {m.label}
             </text>
           ))}
           {dayLabels.map((label, di) => (
             <text
-              key={di} x={12}
+              key={di} x={leftPad - 4}
               y={22 + di * (cellSize + gap) + cellSize / 2 + 4}
               className="heatmap-day-label" textAnchor="end"
             >
@@ -117,7 +118,7 @@ export default function CalendarHeatmap({ activity }: Props) {
               return (
                 <rect
                   key={dateStr}
-                  x={30 + wi * (cellSize + gap)}
+                  x={leftPad + wi * (cellSize + gap)}
                   y={20 + di * (cellSize + gap)}
                   width={cellSize}
                   height={cellSize}
