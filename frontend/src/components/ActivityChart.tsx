@@ -1,8 +1,9 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useActivity } from "../hooks/useActivity";
+import CalendarHeatmap from "./CalendarHeatmap";
+import StatsRing from "./StatsRing";
 
 export default function ActivityChart() {
-  const { activity, loading } = useActivity(90);
+  const { activity, loading } = useActivity();
 
   if (loading) return <div className="loading">Loading...</div>;
 
@@ -10,34 +11,23 @@ export default function ActivityChart() {
 
   return (
     <div>
-      <h2>Daily Activity (Last 90 Days)</h2>
-      <p className="activity-summary">
-        Total distinct problems worked: <strong>{total}</strong> across{" "}
-        <strong>{activity.length}</strong> active days
-      </p>
+      {/* Stats donut */}
+      <StatsRing />
+
+      {/* Calendar heatmap */}
+      <h2 style={{ marginTop: "2rem" }}>Activity Calendar</h2>
       {activity.length === 0 ? (
         <div className="empty-state">
           <p>No activity yet. Start solving problems!</p>
         </div>
       ) : (
-        <div className="chart-container">
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={activity}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(d: string) => d.slice(5)}
-                interval="preserveStartEnd"
-              />
-              <YAxis allowDecimals={false} />
-              <Tooltip
-                labelFormatter={(d: string) => `Date: ${d}`}
-                formatter={(value: number) => [`${value} problems`, "Distinct Problems"]}
-              />
-              <Bar dataKey="count" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <>
+          <p className="activity-summary">
+            Total distinct problem reviews: <strong>{total}</strong> across{" "}
+            <strong>{activity.length}</strong> active days
+          </p>
+          <CalendarHeatmap activity={activity} />
+        </>
       )}
     </div>
   );

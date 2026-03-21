@@ -326,6 +326,261 @@ body {
   margin-bottom: 1.5rem;
 }
 
+/* ===== Stats Ring (Donut Chart) ===== */
+.stats-ring-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.stats-ring-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-diff-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.diff-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.easy-dot { background: var(--easy); }
+.med-dot { background: var(--medium); }
+.hard-dot { background: var(--hard); }
+
+.diff-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 3rem;
+}
+
+.diff-label-easy { color: var(--easy); }
+.diff-label-med { color: var(--medium); }
+.diff-label-hard { color: var(--hard); }
+
+.diff-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.stats-ring-center {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.stats-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-ring-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stats-ring-sep {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+.stats-ring-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.stats-ring-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 120px;
+}
+
+.stats-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stats-card-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.stats-card-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.today-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.today-badge-green {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--easy);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.today-badge-blue {
+  background: rgba(79, 70, 229, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(79, 70, 229, 0.3);
+}
+
+/* ===== Calendar Heatmap ===== */
+.calendar-heatmap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.heatmap-cell {
+  transition: opacity 0.15s;
+}
+
+.heatmap-clickable {
+  cursor: pointer;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+}
+
+.heatmap-month-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.heatmap-day-label {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.heatmap-legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Day detail panel (heatmap click) */
+.day-detail {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.day-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.day-detail-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.day-detail-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.day-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.day-detail-item a {
+  color: var(--primary);
+  text-decoration: none;
+  flex: 1;
+}
+
+.day-detail-item a:hover {
+  text-decoration: underline;
+}
+
+.day-detail-topic {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.day-detail-conf {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
 .chart-container {
   background: var(--surface);
   border: 1px solid var(--border);
