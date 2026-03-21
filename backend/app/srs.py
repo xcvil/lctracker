@@ -47,10 +47,10 @@ def compute_next_review(
 
     confidence:
       1 = 完全忘了 -> reset to stage 0
-      2 = 很模糊 -> go back one stage
-      3 = 勉强记得 -> stay at same stage
-      4 = 比较清晰 -> advance one stage
-      5 = 非常熟练 -> advance two stages
+      2 = 很模糊 -> reset to stage 1 (or 0 if currently at 0)
+      3 = 勉强记得 -> go back one stage (min 0)
+      4 = 比较清晰 -> stay at current stage
+      5 = 非常熟练 -> advance one stage
     """
     if today is None:
         today = date.today()
@@ -58,13 +58,13 @@ def compute_next_review(
     if confidence <= 1:
         new_stage = 0
     elif confidence == 2:
-        new_stage = max(current_stage - 1, 0)
+        new_stage = min(current_stage, 1)  # go to stage 1, or stay at 0 if already there
     elif confidence == 3:
-        new_stage = current_stage
+        new_stage = max(current_stage - 1, 0)
     elif confidence == 4:
-        new_stage = min(current_stage + 1, MAX_STAGE)
+        new_stage = current_stage
     else:  # 5
-        new_stage = min(current_stage + 2, MAX_STAGE)
+        new_stage = min(current_stage + 1, MAX_STAGE)
 
     interval = INTERVALS[new_stage]
     return today + timedelta(days=interval), new_stage
