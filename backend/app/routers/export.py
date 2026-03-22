@@ -159,10 +159,100 @@ def import_data(file: UploadFile):
         imported_notes += 1
 
     conn.commit()
+
+    # Auto-fix data integrity after import
+    fixes = fix_data_integrity(conn)
+
     conn.close()
 
     return {
         "imported_progress": imported_progress,
         "imported_reviews": imported_reviews,
         "imported_notes": imported_notes,
+        **fixes,
+    }
+
+
+@router.post("/check")
+def check_integrity():
+    """Run data integrity check and fix any issues."""
+    conn = get_connection()
+    result = fix_data_integrity(conn)
+    conn.close()
+    return result
+
+
+def fix_data_integrity(conn) -> dict:
+    """Check and fix data integrity issues between notes, review_log, and progress.
+
+    Rules:
+    - Session 0 note should exist iff problem has progress (first solve)
+    - Session N (N>0) note should exist iff review_count >= N
+    - Orphan notes (session > review_count) should be deleted
+    - Missing session 0 notes for solved problems should be created
+    - review_log entries without matching progress should be deleted
+    """
+    now = __import__("datetime").datetime.now().isoformat()
+    deleted_notes = 0
+    created_notes = 0
+    deleted_reviews = 0
+
+    # 1. Delete orphan notes: session > review_count (or no progress at all)
+    orphans = conn.execute(
+        """SELECT n.id, n.problem_id, n.session FROM notes n
+           LEFT JOIN problem_progress pp ON pp.problem_id = n.problem_id
+           WHERE pp.problem_id IS NULL
+              OR n.session > pp.review_count"""
+    ).fetchall()
+    for o in orphans:
+        conn.execute("DELETE FROM notes WHERE id = ?", (o["id"],))
+        deleted_notes += 1
+
+    # 2. Ensure session 0 note exists for all solved problems
+    missing_s0 = conn.execute(
+        """SELECT pp.problem_id FROM problem_progress pp
+           WHERE NOT EXISTS (
+             SELECT 1 FROM notes n WHERE n.problem_id = pp.problem_id AND n.session = 0
+           )"""
+    ).fetchall()
+    for m in missing_s0:
+        conn.execute(
+            "INSERT INTO notes (problem_id, session, content, created_at, updated_at) VALUES (?, 0, '', ?, ?)",
+            (m["problem_id"], now, now),
+        )
+        created_notes += 1
+
+    # 3. Ensure session N notes exist for each review (N = 1..review_count)
+    progress_rows = conn.execute(
+        "SELECT problem_id, review_count FROM problem_progress WHERE review_count > 0"
+    ).fetchall()
+    for pr in progress_rows:
+        for session in range(1, pr["review_count"] + 1):
+            exists = conn.execute(
+                "SELECT 1 FROM notes WHERE problem_id = ? AND session = ?",
+                (pr["problem_id"], session),
+            ).fetchone()
+            if not exists:
+                conn.execute(
+                    "INSERT INTO notes (problem_id, session, content, created_at, updated_at) VALUES (?, ?, '', ?, ?)",
+                    (pr["problem_id"], session, now, now),
+                )
+                created_notes += 1
+
+    # 4. Delete review_log entries for problems without progress
+    orphan_reviews = conn.execute(
+        """DELETE FROM review_log WHERE problem_id NOT IN (
+             SELECT problem_id FROM problem_progress
+           )"""
+    )
+    deleted_reviews = orphan_reviews.rowcount
+
+    conn.commit()
+
+    return {
+        "fixes": {
+            "deleted_orphan_notes": deleted_notes,
+            "created_missing_notes": created_notes,
+            "deleted_orphan_reviews": deleted_reviews,
+        }
     }

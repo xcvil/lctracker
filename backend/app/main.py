@@ -3,8 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import init_db
+from .database import get_connection, init_db
 from .routers import activity, export, notes, problems, reviews
+from .routers.export import fix_data_integrity
 from .seed import seed_problems
 
 
@@ -12,6 +13,12 @@ from .seed import seed_problems
 async def lifespan(app: FastAPI):
     init_db()
     seed_problems()
+    # Auto-fix any data integrity issues on startup
+    conn = get_connection()
+    fixes = fix_data_integrity(conn)
+    conn.close()
+    if any(v > 0 for v in fixes.get("fixes", {}).values()):
+        print(f"Data integrity fixes applied: {fixes['fixes']}")
     yield
 
 
