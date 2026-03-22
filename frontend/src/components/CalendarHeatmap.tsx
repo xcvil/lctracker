@@ -34,18 +34,21 @@ export default function CalendarHeatmap({ activity }: Props) {
 
   const countMap = new Map(activity.map((d) => [d.date, d.count]));
 
-  // Generate all dates for the past year
+  // Generate all dates for the past year using local dates (no timezone issues)
   const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 364);
+  const toLocalIso = (dt: Date) =>
+    `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+  const todayStr = toLocalIso(today);
+
+  const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 364);
   startDate.setDate(startDate.getDate() - startDate.getDay());
 
   const weeks: string[][] = [];
   let currentWeek: string[] = [];
   const d = new Date(startDate);
 
-  while (d <= today) {
-    currentWeek.push(d.toISOString().split("T")[0]);
+  while (toLocalIso(d) <= todayStr) {
+    currentWeek.push(toLocalIso(d));
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
       currentWeek = [];
@@ -82,9 +85,10 @@ export default function CalendarHeatmap({ activity }: Props) {
   });
 
   const handleCellClick = async (dateStr: string) => {
+    if (dateStr > todayStr) return; // don't click future dates
     const count = countMap.get(dateStr) || 0;
     if (count === 0) {
-      setSelectedDay(null);
+      setSelectedDay({ date: dateStr, problems: [] });
       return;
     }
     setLoadingDay(true);
@@ -117,7 +121,7 @@ export default function CalendarHeatmap({ activity }: Props) {
           {weeks.map((week, wi) =>
             week.map((dateStr, di) => {
               const count = countMap.get(dateStr) || 0;
-              const isFuture = new Date(dateStr) > today;
+              const isFuture = dateStr > todayStr;
               const isSelected = selectedDay?.date === dateStr;
               return (
                 <rect
@@ -130,7 +134,7 @@ export default function CalendarHeatmap({ activity }: Props) {
                   fill={isFuture ? "transparent" : getColor(count)}
                   stroke={isSelected ? "white" : "none"}
                   strokeWidth={isSelected ? 2 : 0}
-                  className={count > 0 ? "heatmap-cell heatmap-clickable" : "heatmap-cell"}
+                  className={!isFuture ? "heatmap-cell heatmap-clickable" : "heatmap-cell"}
                   onClick={() => handleCellClick(dateStr)}
                 >
                   <title>
@@ -165,6 +169,9 @@ export default function CalendarHeatmap({ activity }: Props) {
               Close
             </button>
           </div>
+          {selectedDay.problems.length === 0 ? (
+            <p className="notes-empty">这天没有做题</p>
+          ) : (
           <div className="day-detail-list">
             {selectedDay.problems.map((p) => (
               <div
@@ -198,6 +205,7 @@ export default function CalendarHeatmap({ activity }: Props) {
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 

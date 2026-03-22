@@ -101,6 +101,9 @@ export default function Layout() {
       <main className="container">
         <Outlet />
       </main>
+      <footer className="app-footer">
+        Copyright &copy; 2026 Xiaochen Zheng. All rights reserved. Contact: xzheng.ethz@gmail.com
+      </footer>
     </div>
   );
 }

@@ -423,6 +423,13 @@ body {
   transform: scale(1.3);
 }
 
+.stage-extra {
+  font-size: 0.7rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-left: 2px;
+}
+
 /* Stage popover */
 .stage-popover-overlay {
   position: fixed;
@@ -896,6 +903,15 @@ body {
 
 h2 {
   margin-bottom: 1rem;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
 }
 
 /* ===== Confidence Buttons (matching mockup) ===== */

@@ -16,7 +16,7 @@ def _row_to_problem(r, today: date) -> ProblemOut:
     progress = None
     if r["first_solved"]:
         days_since = (today - date.fromisoformat(r["last_reviewed"])).days
-        retention = compute_retention(r["stage"], days_since)
+        retention = compute_retention(r["stage"], days_since, r["self_rating"] or 0)
         progress = ProblemProgress(
             first_solved=r["first_solved"],
             last_reviewed=r["last_reviewed"],

@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { get, put } from "../api/client";
 import type { Note, Problem, ReviewLogEntry } from "../types";
-import { formatDate } from "../utils";
+import { daysUntil, dueText, formatDate } from "../utils";
 import ConfidenceButtons from "./ConfidenceButtons";
 
 const STAGE_INTERVALS = [1, 2, 4, 7, 15, 30];
@@ -65,9 +65,7 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
 
   const diffClass = `diff-${problem.difficulty.toLowerCase()}`;
   const p = problem.progress;
-  const daysUntilDue = p
-    ? Math.ceil((new Date(p.next_due).getTime() - Date.now()) / 86400000)
-    : 0;
+  const daysUntilDue = p ? daysUntil(p.next_due) : 0;
 
   // Map dot index to review history entry
   const getReviewEntry = (dotIndex: number): ReviewLogEntry | undefined => {
@@ -121,7 +119,7 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
             </div>
             <div className="detail-stat-item">
               <span className="detail-stat-value">
-                {daysUntilDue > 0 ? `${daysUntilDue}天后` : daysUntilDue === 0 ? "今天" : `逾期${Math.abs(daysUntilDue)}天`}
+                {dueText(p.next_due)}
               </span>
               <span className="detail-stat-label">下次复习</span>
             </div>
@@ -135,13 +133,16 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
               {STAGE_INTERVALS.map((interval, i) => (
                 <div
                   key={i}
-                  className={`detail-stage-step ${i <= p.stage ? "detail-stage-done detail-stage-clickable" : ""} ${i === p.stage ? "detail-stage-current" : ""} ${i === selectedDot ? "detail-stage-selected" : ""}`}
+                  className={`detail-stage-step ${i <= Math.min(p.stage, STAGE_INTERVALS.length - 1) ? "detail-stage-done detail-stage-clickable" : ""} ${i === Math.min(p.stage, STAGE_INTERVALS.length - 1) ? "detail-stage-current" : ""} ${i === selectedDot ? "detail-stage-selected" : ""}`}
                   onClick={() => handleDotClick(i)}
                 >
                   <span className="detail-stage-dot" />
                   <span className="detail-stage-label">{interval}d</span>
                 </div>
               ))}
+              {p.stage > STAGE_INTERVALS.length - 1 && (
+                <span className="stage-extra">+{p.stage - STAGE_INTERVALS.length + 1}</span>
+              )}
             </div>
 
             {/* Selected dot detail */}

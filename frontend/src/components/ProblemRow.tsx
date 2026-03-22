@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { del, get, put } from "../api/client";
 import type { Note, Problem, ReviewLogEntry } from "../types";
-import { formatDate } from "../utils";
+import { dueText, formatDate } from "../utils";
 import NotesPanel from "./NotesPanel";
 import ProblemDetail from "./ProblemDetail";
 
@@ -18,8 +18,24 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
   const [history, setHistory] = useState<ReviewLogEntry[]>([]);
   const [editContent, setEditContent] = useState("");
   const [editing, setEditing] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const p = progress!;
+
+  // Update popover position on scroll
+  useEffect(() => {
+    if (openDot === null) return;
+    const updatePos = () => {
+      const el = dotRefs.current[Math.min(openDot, TOTAL_STAGES - 1)];
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setPopoverPos({ top: rect.bottom + 8, left: Math.max(rect.left - 80, 8) });
+      }
+    };
+    updatePos();
+    window.addEventListener("scroll", updatePos, true);
+    return () => window.removeEventListener("scroll", updatePos, true);
+  }, [openDot]);
 
   const fetchData = useCallback(async () => {
     const [n, h] = await Promise.all([
@@ -40,12 +56,12 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
     fetchData();
   };
 
-  const getPopoverStyle = (dotIndex: number): React.CSSProperties => {
-    const el = dotRefs.current[dotIndex];
-    if (!el) return {};
-    const rect = el.getBoundingClientRect();
-    return { position: "fixed", top: rect.bottom + 8, left: Math.max(rect.left - 80, 8), zIndex: 1000 };
-  };
+  const getPopoverStyle = (): React.CSSProperties => ({
+    position: "fixed",
+    top: popoverPos.top,
+    left: popoverPos.left,
+    zIndex: 1000,
+  });
 
   const handleDotClick = (i: number) => {
     if (i > stage) return; // can't click future dots
@@ -74,24 +90,22 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
           <span
             key={i}
             ref={(el) => { dotRefs.current[i] = el; }}
-            className={`stage-dot ${i <= stage ? "stage-dot-filled stage-dot-clickable" : ""} ${i === stage ? "stage-dot-current" : ""}`}
+            className={`stage-dot ${i <= Math.min(stage, TOTAL_STAGES - 1) ? "stage-dot-filled stage-dot-clickable" : ""} ${i === Math.min(stage, TOTAL_STAGES - 1) ? "stage-dot-current" : ""}`}
             onClick={() => handleDotClick(i)}
           />
         ))}
+        {stage > TOTAL_STAGES - 1 && (
+          <span className="stage-extra">+{stage - TOTAL_STAGES + 1}</span>
+        )}
       </div>
       {openDot !== null && (
         <div className="stage-popover-overlay" onClick={() => { setOpenDot(null); setEditing(false); }}>
-          <div className="stage-popover" style={getPopoverStyle(openDot)} onClick={(e) => e.stopPropagation()}>
+          <div className="stage-popover" style={getPopoverStyle()} onClick={(e) => e.stopPropagation()}>
             {/* Overview header — always shown */}
             <div className="stage-popover-header">
               Stage {stage}/5
               <span className="stage-popover-interval">
-                {(() => {
-                  const days = Math.ceil((new Date(p.next_due).getTime() - Date.now()) / 86400000);
-                  if (days > 0) return `${days}天后复习`;
-                  if (days === 0) return "今天复习";
-                  return `逾期${Math.abs(days)}天`;
-                })()}
+                {dueText(p.next_due)}
               </span>
             </div>
 

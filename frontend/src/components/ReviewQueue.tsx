@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useReviews } from "../hooks/useReviews";
 import type { Problem } from "../types";
+import { dueText } from "../utils";
 import ProblemDetail from "./ProblemDetail";
 
 function ReviewListItem({
@@ -14,9 +15,6 @@ function ReviewListItem({
 }) {
   const p = problem.progress!;
   const diffClass = `diff-${problem.difficulty.toLowerCase()}`;
-  const daysUntilDue = Math.ceil(
-    (new Date(p.next_due).getTime() - Date.now()) / 86400000
-  );
 
   return (
     <div className="review-list-item">
@@ -51,24 +49,20 @@ function ReviewListItem({
         </span>
         <span className="review-item-meta">·</span>
         <span className="review-item-meta">
-          {daysUntilDue > 0
-            ? `${daysUntilDue}天后复习`
-            : daysUntilDue === 0
-            ? "今天复习"
-            : `逾期${Math.abs(daysUntilDue)}天`}
+          {dueText(p.next_due)}
         </span>
+        <button
+          className="btn-review"
+          onClick={() => onOpenReview(problem)}
+        >
+          开始复习
+        </button>
         <button
           className="btn-reset"
           onClick={() => onReset(problem.id)}
           title="重置进度"
         >
           ↻
-        </button>
-        <button
-          className="btn-review"
-          onClick={() => onOpenReview(problem)}
-        >
-          再练
         </button>
       </div>
     </div>

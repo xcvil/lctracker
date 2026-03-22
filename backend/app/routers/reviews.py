@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/reviews", tags=["reviews"])
 def _row_to_problem(r) -> ProblemOut:
     today = date.today()
     days_since = (today - date.fromisoformat(r["last_reviewed"])).days
-    retention = compute_retention(r["stage"], days_since)
+    retention = compute_retention(r["stage"], days_since, r["self_rating"] or 0)
     return ProblemOut(
         id=r["id"],
         title=r["title"],
@@ -80,7 +80,8 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
 
         if today >= due_date:
             # On or after due date — update stage based on confidence
-            next_due, stage = compute_next_review(progress["stage"], confidence, today)
+            self_rating = progress["self_rating"] or 0
+            next_due, stage = compute_next_review(progress["stage"], confidence, self_rating, today)
             conn.execute(
                 """UPDATE problem_progress
                    SET last_reviewed = ?, review_count = ?, stage = ?, next_due = ?
