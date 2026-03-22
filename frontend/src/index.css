@@ -156,14 +156,31 @@ body {
   text-decoration: underline;
 }
 
-.sortable-header {
+.sortable-col {
   cursor: pointer;
   user-select: none;
+  transition: color 0.15s;
 }
 
-.sortable-header:hover {
+.sortable-col:hover {
   color: var(--text);
 }
+
+.sort-asc,
+.sort-desc {
+  color: var(--primary);
+}
+
+.sort-asc::after {
+  content: " ↑";
+  font-size: 0.7rem;
+}
+
+.sort-desc::after {
+  content: " ↓";
+  font-size: 0.7rem;
+}
+
 
 /* Difficulty badges */
 .difficulty {

@@ -12,7 +12,6 @@ function loadFilters() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Validate structure — only keep known string keys
       return {
         topic: typeof parsed.topic === "string" ? parsed.topic : "",
         difficulty: typeof parsed.difficulty === "string" ? parsed.difficulty : "",
@@ -29,6 +28,13 @@ function loadFilters() {
 
 function saveFilters(f: Record<string, string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(f));
+}
+
+// Click cycles: none → asc → desc → none
+function nextSort(field: string, current: string): string {
+  if (current === field) return `${field}_desc`;
+  if (current === `${field}_desc`) return "";
+  return field;
 }
 
 export default function ProblemTable() {
@@ -58,8 +64,10 @@ export default function ProblemTable() {
 
   if (loading) return <div className="loading">Loading...</div>;
 
-  // If saved filters return 0 results but filters are active, show a reset hint
   const hasActiveFilters = filters.topic || filters.difficulty || filters.list || filters.status;
+
+  const thClass = (field: string) =>
+    `sortable-col ${sort === field ? "sort-asc" : sort === `${field}_desc` ? "sort-desc" : ""}`;
 
   return (
     <div>
@@ -88,18 +96,18 @@ export default function ProblemTable() {
               <th>Problem</th>
               <th>Difficulty</th>
               <th>Topic</th>
-              <th>Reviews</th>
-              <th>Stage</th>
-              <th
-                className="sortable-header"
-                onClick={() =>
-                  handleSortChange(sort === "retention" ? "retention_desc" : "retention")
-                }
-              >
-                Retention{" "}
-                {sort === "retention" ? "▲" : sort === "retention_desc" ? "▼" : "⇅"}
+              <th className={thClass("reviews")} onClick={() => handleSortChange(nextSort("reviews", sort))}>
+                Reviews
               </th>
-              <th>Next Due</th>
+              <th className={thClass("stage")} onClick={() => handleSortChange(nextSort("stage", sort))}>
+                Stage
+              </th>
+              <th className={thClass("retention")} onClick={() => handleSortChange(nextSort("retention", sort))}>
+                Retention
+              </th>
+              <th className={thClass("due")} onClick={() => handleSortChange(nextSort("due", sort))}>
+                Next Due
+              </th>
               <th>Action</th>
             </tr>
           </thead>

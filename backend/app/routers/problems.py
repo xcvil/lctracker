@@ -86,11 +86,23 @@ def list_problems(
 
     results = [_row_to_problem(r, today) for r in rows]
 
-    # Sort by retention (ascending = weakest first)
+    # Sorting
     if sort == "retention":
         results.sort(key=lambda p: p.progress.retention if p.progress else 999)
     elif sort == "retention_desc":
         results.sort(key=lambda p: p.progress.retention if p.progress else -1, reverse=True)
+    elif sort == "reviews":
+        results.sort(key=lambda p: p.progress.review_count if p.progress else -1, reverse=True)
+    elif sort == "reviews_desc":
+        results.sort(key=lambda p: p.progress.review_count if p.progress else 999)
+    elif sort == "stage":
+        results.sort(key=lambda p: p.progress.stage if p.progress else -1, reverse=True)
+    elif sort == "stage_desc":
+        results.sort(key=lambda p: p.progress.stage if p.progress else 999)
+    elif sort == "due":
+        results.sort(key=lambda p: p.progress.next_due if p.progress else "9999")
+    elif sort == "due_desc":
+        results.sort(key=lambda p: p.progress.next_due if p.progress else "", reverse=True)
 
     return results
 
