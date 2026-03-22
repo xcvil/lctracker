@@ -1,10 +1,90 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { del } from "../api/client";
 import type { Problem } from "../types";
 import NotesPanel from "./NotesPanel";
 import ReviewModal from "./ReviewModal";
 
-const STAGE_LABELS = ["1d", "2d", "4d", "7d", "15d", "30d"];
+const STAGE_INTERVALS = [1, 2, 4, 7, 15, 30];
+const TOTAL_STAGES = STAGE_INTERVALS.length;
+
+function StageBar({ stage, progress }: { stage: number; progress: Problem["progress"] }) {
+  const [open, setOpen] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
+  const p = progress!;
+  const daysSinceLast = Math.floor(
+    (Date.now() - new Date(p.last_reviewed).getTime()) / 86400000
+  );
+
+  // Compute popover position from the bar element
+  const getPopoverStyle = (): React.CSSProperties => {
+    if (!barRef.current) return {};
+    const rect = barRef.current.getBoundingClientRect();
+    return {
+      position: "fixed",
+      top: rect.bottom + 8,
+      left: rect.left,
+      zIndex: 1000,
+    };
+  };
+
+  return (
+    <>
+      <div
+        ref={barRef}
+        className="stage-bar"
+        onClick={() => setOpen(!open)}
+        style={{ cursor: "pointer" }}
+      >
+        {Array.from({ length: TOTAL_STAGES }, (_, i) => (
+          <span
+            key={i}
+            className={`stage-dot ${i <= stage ? "stage-dot-filled" : ""} ${i === stage ? "stage-dot-current" : ""}`}
+          />
+        ))}
+      </div>
+      {open && (
+        <div className="stage-popover-overlay" onClick={() => setOpen(false)}>
+          <div
+            className="stage-popover"
+            style={getPopoverStyle()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="stage-popover-header">
+              Stage {stage}/5
+              <span className="stage-popover-interval">{STAGE_INTERVALS[stage]}天间隔</span>
+            </div>
+            <div className="stage-popover-body">
+              <div className="stage-popover-row">
+                <span className="stage-popover-label">首次解题</span>
+                <span>{p.first_solved}</span>
+              </div>
+              <div className="stage-popover-row">
+                <span className="stage-popover-label">上次复习</span>
+                <span>{p.last_reviewed}{daysSinceLast > 0 ? ` (${daysSinceLast}天前)` : " (今天)"}</span>
+              </div>
+              <div className="stage-popover-row">
+                <span className="stage-popover-label">已复习</span>
+                <span>{p.review_count} 次</span>
+              </div>
+              <div className="stage-popover-row">
+                <span className="stage-popover-label">下次复习</span>
+                <span>{p.next_due}</span>
+              </div>
+              <div className="stage-popover-progress">
+                {STAGE_INTERVALS.map((interval, i) => (
+                  <div key={i} className={`stage-step ${i <= stage ? "stage-step-done" : ""} ${i === stage ? "stage-step-current" : ""}`}>
+                    <span className="stage-step-dot" />
+                    <span className="stage-step-label">{interval}d</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 interface Props {
   problem: Problem;
@@ -40,9 +120,7 @@ export default function ProblemRow({ problem, onAction, onRefresh }: Props) {
         <td>{p.progress ? p.progress.review_count : "—"}</td>
         <td>
           {p.progress ? (
-            <span className="stage-badge">
-              Stage {p.progress.stage} ({STAGE_LABELS[p.progress.stage]})
-            </span>
+            <StageBar stage={p.progress.stage} progress={p.progress} />
           ) : (
             "—"
           )}

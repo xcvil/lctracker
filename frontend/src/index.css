@@ -229,14 +229,124 @@ body {
   color: var(--hard);
 }
 
-/* Stage badge */
-.stage-badge {
+/* Stage progress bar */
+.stage-bar-wrapper {
+  position: relative;
+}
+
+.stage-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.stage-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.2s;
+}
+
+.stage-dot-filled {
+  background: var(--primary);
+  opacity: 0.5;
+}
+
+.stage-dot-current {
+  opacity: 1;
+  box-shadow: 0 0 4px var(--primary);
+}
+
+/* Stage popover */
+.stage-popover-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+}
+
+.stage-popover {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  padding: 1rem;
+  min-width: 240px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 901;
+}
+
+.stage-popover-header {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stage-popover-interval {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--primary);
+  background: rgba(79, 70, 229, 0.15);
+  padding: 0.15rem 0.5rem;
   border-radius: 4px;
+}
+
+.stage-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stage-popover-row {
+  display: flex;
+  justify-content: space-between;
   font-size: 0.8rem;
 }
+
+.stage-popover-label {
+  color: var(--text-muted);
+}
+
+.stage-popover-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.stage-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stage-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.stage-step-done .stage-step-dot {
+  background: var(--primary);
+  opacity: 0.5;
+}
+
+.stage-step-current .stage-step-dot {
+  background: var(--primary);
+  opacity: 1;
+  box-shadow: 0 0 6px var(--primary);
+}
+
+.stage-step-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
 
 /* Retention */
 .retention-text {
