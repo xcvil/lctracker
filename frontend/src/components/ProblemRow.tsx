@@ -51,21 +51,37 @@ function StageBar({ stage, progress }: { stage: number; progress: Problem["progr
           >
             <div className="stage-popover-header">
               Stage {stage}/5
-              <span className="stage-popover-interval">{STAGE_INTERVALS[stage]}天间隔</span>
+              <span className="stage-popover-interval">
+                {(() => {
+                  const days = Math.ceil((new Date(p.next_due).getTime() - Date.now()) / 86400000);
+                  if (days > 0) return `${days}天后复习`;
+                  if (days === 0) return "今天复习";
+                  return `逾期${Math.abs(days)}天`;
+                })()}
+              </span>
             </div>
             <div className="stage-popover-body">
               <div className="stage-popover-row">
                 <span className="stage-popover-label">首次解题</span>
                 <span>{p.first_solved}</span>
               </div>
-              <div className="stage-popover-row">
-                <span className="stage-popover-label">上次复习</span>
-                <span>{p.last_reviewed}{daysSinceLast > 0 ? ` (${daysSinceLast}天前)` : " (今天)"}</span>
-              </div>
-              <div className="stage-popover-row">
-                <span className="stage-popover-label">已复习</span>
-                <span>{p.review_count} 次</span>
-              </div>
+              {p.review_count > 0 ? (
+                <>
+                  <div className="stage-popover-row">
+                    <span className="stage-popover-label">上次复习</span>
+                    <span>{p.last_reviewed}{daysSinceLast > 0 ? ` (${daysSinceLast}天前)` : " (今天)"}</span>
+                  </div>
+                  <div className="stage-popover-row">
+                    <span className="stage-popover-label">已复习</span>
+                    <span>{p.review_count} 次</span>
+                  </div>
+                </>
+              ) : (
+                <div className="stage-popover-row">
+                  <span className="stage-popover-label">已复习</span>
+                  <span>尚未复习</span>
+                </div>
+              )}
               <div className="stage-popover-row">
                 <span className="stage-popover-label">下次复习</span>
                 <span>{p.next_due}</span>

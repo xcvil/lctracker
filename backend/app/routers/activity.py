@@ -69,25 +69,10 @@ def get_stats():
         "SELECT COUNT(*) as count FROM problems"
     ).fetchone()["count"]
 
-    # Total reviews = only re-reviews (review_count > 1 means reviewed, not first solve)
-    # Count all review_log entries EXCEPT the first solve for each problem
+    # Total reviews — review_log only contains actual reviews (not first solves)
     total_reviews = conn.execute(
-        """SELECT COUNT(*) as count FROM review_log rl
-           WHERE EXISTS (
-             SELECT 1 FROM problem_progress pp
-             WHERE pp.problem_id = rl.problem_id AND pp.first_solved < rl.date
-           )
-           OR (
-             SELECT COUNT(*) FROM review_log rl2
-             WHERE rl2.problem_id = rl.problem_id AND rl2.date = rl.date
-           ) > 1"""
-    ).fetchone()["count"]
-    # Total reviews = total review_log entries minus first-solve entries
-    # Every problem's first review_log entry is the first solve, rest are reviews
-    total_log_entries = conn.execute(
         "SELECT COUNT(*) as count FROM review_log"
     ).fetchone()["count"]
-    total_reviews = max(0, total_log_entries - total_solved)
 
     # Today's stats
     today = date.today().isoformat()
@@ -98,12 +83,11 @@ def get_stats():
         (today,),
     ).fetchone()["count"]
 
-    # Reviews today = total review_log entries today minus new solves today
-    today_total_entries = conn.execute(
+    # Reviews today
+    today_reviews_only = conn.execute(
         "SELECT COUNT(*) as count FROM review_log WHERE date = ?",
         (today,),
     ).fetchone()["count"]
-    today_reviews_only = max(0, today_total_entries - today_new)
 
     conn.close()
 

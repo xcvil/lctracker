@@ -55,14 +55,23 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
     ).fetchone()
 
     if progress is None:
+        # First solve — create progress, NO review_log entry
         next_due, stage = compute_first_review(today)
         conn.execute(
             """INSERT INTO problem_progress (problem_id, first_solved, last_reviewed, review_count, stage, next_due)
-               VALUES (?, ?, ?, 1, ?, ?)""",
+               VALUES (?, ?, ?, 0, ?, ?)""",
             (problem_id, today.isoformat(), today.isoformat(), stage, next_due.isoformat()),
         )
-        review_count = 1
+        review_count = 0
+
+        # Create note stub for first solve (session 0)
+        conn.execute(
+            "INSERT INTO notes (problem_id, session, content, created_at, updated_at) VALUES (?, 0, '', ?, ?)",
+            (problem_id, now, now),
+        )
+        conn.commit()
     else:
+        # Review — update progress AND write review_log
         next_due, stage = compute_next_review(progress["stage"], confidence, today)
         review_count = progress["review_count"] + 1
         conn.execute(
@@ -72,22 +81,21 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
             (today.isoformat(), review_count, stage, next_due.isoformat(), problem_id),
         )
 
-    conn.execute(
-        "INSERT INTO review_log (problem_id, reviewed_at, date, confidence) VALUES (?, ?, ?, ?)",
-        (problem_id, now, today.isoformat(), confidence),
-    )
-    conn.commit()
-
-    # Auto-create a note stub for this session
-    existing_note = conn.execute(
-        "SELECT id FROM notes WHERE problem_id = ? AND session = ?",
-        (problem_id, review_count),
-    ).fetchone()
-    if not existing_note:
         conn.execute(
-            "INSERT INTO notes (problem_id, session, content, created_at, updated_at) VALUES (?, ?, '', ?, ?)",
-            (problem_id, review_count, now, now),
+            "INSERT INTO review_log (problem_id, reviewed_at, date, confidence) VALUES (?, ?, ?, ?)",
+            (problem_id, now, today.isoformat(), confidence),
         )
+
+        # Create note stub for this review session
+        existing_note = conn.execute(
+            "SELECT id FROM notes WHERE problem_id = ? AND session = ?",
+            (problem_id, review_count),
+        ).fetchone()
+        if not existing_note:
+            conn.execute(
+                "INSERT INTO notes (problem_id, session, content, created_at, updated_at) VALUES (?, ?, '', ?, ?)",
+                (problem_id, review_count, now, now),
+            )
         conn.commit()
 
     conn.close()
