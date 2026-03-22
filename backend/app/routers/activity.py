@@ -17,23 +17,23 @@ def get_activity(
     conn = get_connection()
     today = date.today()
 
+    # Combine first solves (from problem_progress) and reviews (from review_log)
+    # into a unified activity view
+    query = """
+        SELECT date, COUNT(DISTINCT problem_id) as count FROM (
+            SELECT first_solved AS date, problem_id FROM problem_progress
+            UNION ALL
+            SELECT date, problem_id FROM review_log
+        )
+    """
+    params: list = []
+
     if from_date and to_date:
-        rows = conn.execute(
-            """SELECT date, COUNT(DISTINCT problem_id) as count
-               FROM review_log
-               WHERE date BETWEEN ? AND ?
-               GROUP BY date
-               ORDER BY date""",
-            (from_date, to_date),
-        ).fetchall()
-    else:
-        # All time
-        rows = conn.execute(
-            """SELECT date, COUNT(DISTINCT problem_id) as count
-               FROM review_log
-               GROUP BY date
-               ORDER BY date"""
-        ).fetchall()
+        query += " WHERE date BETWEEN ? AND ?"
+        params = [from_date, to_date]
+
+    query += " GROUP BY date ORDER BY date"
+    rows = conn.execute(query, params).fetchall()
 
     conn.close()
     return [ActivityDay(date=r["date"], count=r["count"]) for r in rows]
@@ -107,11 +107,12 @@ def get_stats():
 
 @router.get("/day/{day}")
 def get_day_detail(day: str):
-    """Get problems worked on a specific day with their confidence."""
+    """Get problems worked on a specific day (first solves + reviews)."""
     conn = get_connection()
-    rows = conn.execute(
+
+    # Reviews on this day
+    review_rows = conn.execute(
         """SELECT p.id, p.title, p.slug, p.url, p.difficulty, p.topic,
-                  p.neetcode_75, p.neetcode_150, p.neetcode_250, p.neetcode_all,
                   rl.confidence, pp.first_solved, pp.review_count
            FROM review_log rl
            JOIN problems p ON p.id = rl.problem_id
@@ -121,20 +122,36 @@ def get_day_detail(day: str):
            ORDER BY rl.reviewed_at""",
         (day,),
     ).fetchall()
+
+    # First solves on this day (not in review_log)
+    solve_rows = conn.execute(
+        """SELECT p.id, p.title, p.slug, p.url, p.difficulty, p.topic,
+                  pp.first_solved, pp.review_count
+           FROM problem_progress pp
+           JOIN problems p ON p.id = pp.problem_id
+           WHERE pp.first_solved = ?
+             AND pp.problem_id NOT IN (
+               SELECT problem_id FROM review_log WHERE date = ?
+             )""",
+        (day, day),
+    ).fetchall()
+
     conn.close()
 
     results = []
-    for r in rows:
-        is_first = r["first_solved"] == day
+    for r in solve_rows:
         results.append({
-            "id": r["id"],
-            "title": r["title"],
-            "slug": r["slug"],
-            "url": r["url"],
-            "difficulty": r["difficulty"],
-            "topic": r["topic"],
+            "id": r["id"], "title": r["title"], "slug": r["slug"],
+            "url": r["url"], "difficulty": r["difficulty"], "topic": r["topic"],
+            "confidence": 0, "is_new": True,
+            "review_count": r["review_count"] or 0,
+        })
+    for r in review_rows:
+        results.append({
+            "id": r["id"], "title": r["title"], "slug": r["slug"],
+            "url": r["url"], "difficulty": r["difficulty"], "topic": r["topic"],
             "confidence": r["confidence"],
-            "is_new": is_first,
+            "is_new": r["first_solved"] == day,
             "review_count": r["review_count"] or 0,
         })
 

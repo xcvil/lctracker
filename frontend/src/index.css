@@ -1200,6 +1200,25 @@ h2 {
   margin: 0.75rem 0 0.5rem;
 }
 
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 0.375rem 0.625rem;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
 /* ===== Notes Search ===== */
 .search-bar {
   display: flex;

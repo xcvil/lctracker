@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { get } from "../api/client";
 import type { Note, Problem } from "../types";
 import { formatDate } from "../utils";
@@ -60,7 +61,7 @@ export default function NotesSearch() {
                 </span>
               </div>
               <div className="note-content markdown-body">
-                <ReactMarkdown>{note.content}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
               </div>
             </div>
           ))}

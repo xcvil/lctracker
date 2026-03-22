@@ -52,12 +52,13 @@ export default function CalendarHeatmap({ activity }: Props) {
   }
   if (currentWeek.length > 0) weeks.push(currentWeek);
 
+  const maxCount = Math.max(...activity.map((d) => d.count), 1);
+  const colors = ["var(--border)", "#0e3520", "#166534", "#22c55e", "#4ade80"];
+
   const getColor = (count: number): string => {
-    if (count === 0) return "var(--border)";
-    if (count <= 1) return "#1a4731";
-    if (count <= 3) return "#166534";
-    if (count <= 5) return "#22c55e";
-    return "#4ade80";
+    if (count === 0) return colors[0];
+    const level = Math.ceil((count / maxCount) * 4);
+    return colors[Math.min(level, 4)];
   };
 
   const cellSize = 14;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { get, put } from "../api/client";
 import type { Note } from "../types";
 import { formatDate } from "../utils";
@@ -83,7 +84,7 @@ export default function NotesPanel({ problemId }: Props) {
                 className="note-content markdown-body clickable-note"
                 onClick={() => startEdit(note)}
               >
-                <ReactMarkdown>{note.content}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
               </div>
             ) : (
               <div
