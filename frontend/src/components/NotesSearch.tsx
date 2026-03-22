@@ -16,7 +16,6 @@ export default function NotesSearch() {
       `/notes/search/${encodeURIComponent(query)}`
     );
     // Fetch problem titles for each note
-    const problemIds = [...new Set(notes.map((n) => n.problem_id))];
     const problems = await get<Problem[]>("/problems");
     const titleMap = new Map(problems.map((p) => [p.id, p.title]));
 
