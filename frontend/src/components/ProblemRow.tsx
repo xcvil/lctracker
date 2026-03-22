@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { del } from "../api/client";
 import type { Problem } from "../types";
+import { formatDate } from "../utils";
 import NotesPanel from "./NotesPanel";
 import ReviewModal from "./ReviewModal";
 
@@ -63,13 +64,13 @@ function StageBar({ stage, progress }: { stage: number; progress: Problem["progr
             <div className="stage-popover-body">
               <div className="stage-popover-row">
                 <span className="stage-popover-label">首次解题</span>
-                <span>{p.first_solved}</span>
+                <span>{formatDate(p.first_solved)}</span>
               </div>
               {p.review_count > 0 ? (
                 <>
                   <div className="stage-popover-row">
                     <span className="stage-popover-label">上次复习</span>
-                    <span>{p.last_reviewed}{daysSinceLast > 0 ? ` (${daysSinceLast}天前)` : " (今天)"}</span>
+                    <span>{formatDate(p.last_reviewed)}{daysSinceLast > 0 ? ` (${daysSinceLast}天前)` : " (今天)"}</span>
                   </div>
                   <div className="stage-popover-row">
                     <span className="stage-popover-label">已复习</span>
@@ -84,7 +85,7 @@ function StageBar({ stage, progress }: { stage: number; progress: Problem["progr
               )}
               <div className="stage-popover-row">
                 <span className="stage-popover-label">下次复习</span>
-                <span>{p.next_due}</span>
+                <span>{formatDate(p.next_due)}</span>
               </div>
               <div className="stage-popover-progress">
                 {STAGE_INTERVALS.map((interval, i) => (
@@ -158,7 +159,7 @@ export default function ProblemRow({ problem, onAction, onRefresh }: Props) {
             "—"
           )}
         </td>
-        <td>{p.progress ? p.progress.next_due : "—"}</td>
+        <td>{p.progress ? formatDate(p.progress.next_due) : "—"}</td>
         <td className="action-cell">
           <div className="action-buttons">
             <button

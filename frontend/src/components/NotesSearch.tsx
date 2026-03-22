@@ -2,6 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { get } from "../api/client";
 import type { Note, Problem } from "../types";
+import { formatDate } from "../utils";
 
 export default function NotesSearch() {
   const [query, setQuery] = useState("");
@@ -55,7 +56,7 @@ export default function NotesSearch() {
                 <strong>{note.problem_title}</strong>
                 <span className="note-session">Session #{note.session}</span>
                 <span className="note-date">
-                  {note.updated_at.split("T")[0]}
+                  {formatDate(note.updated_at)}
                 </span>
               </div>
               <div className="note-content markdown-body">

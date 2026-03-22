@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { get } from "../api/client";
 import type { ActivityDay } from "../types";
+import { formatDate } from "../utils";
 
 interface DayProblem {
   id: number;
@@ -187,12 +188,3 @@ export default function CalendarHeatmap({ activity }: Props) {
   );
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("zh-CN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-}

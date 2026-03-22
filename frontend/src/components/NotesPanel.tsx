@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { get, post, put } from "../api/client";
+import { get, put } from "../api/client";
 import type { Note } from "../types";
+import { formatDate } from "../utils";
 
 interface Props {
   problemId: number;
@@ -29,11 +30,6 @@ export default function NotesPanel({ problemId }: Props) {
     fetchNotes();
   };
 
-  const handleAdd = async () => {
-    await post(`/notes/${problemId}`, { content: "" });
-    fetchNotes();
-  };
-
   const startEdit = (note: Note) => {
     setEditingId(note.id);
     setEditContent(note.content);
@@ -45,19 +41,18 @@ export default function NotesPanel({ problemId }: Props) {
     <div className="notes-panel">
       <div className="notes-header">
         <h4>Notes</h4>
-        <button className="btn btn-secondary btn-sm" onClick={handleAdd}>
-          + Add Note
-        </button>
       </div>
       {notes.length === 0 ? (
-        <p className="notes-empty">No notes yet.</p>
+        <p className="notes-empty">No notes yet. Solve or review this problem to create a note.</p>
       ) : (
         notes.map((note) => (
           <div key={note.id} className="note-card">
             <div className="note-meta">
-              <span className="note-session">Session #{note.session}</span>
+              <span className="note-session">
+                {note.session === 0 ? "首次解题" : `第 ${note.session} 次复习`}
+              </span>
               <span className="note-date">
-                {note.updated_at.split("T")[0]}
+                {formatDate(note.updated_at)}
               </span>
             </div>
             {editingId === note.id ? (

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { get } from "../api/client";
 import type { Problem, ReviewLogEntry } from "../types";
+import { formatDate } from "../utils";
 import ConfidenceButtons from "./ConfidenceButtons";
 
 interface Props {
@@ -131,7 +132,3 @@ export default function ReviewModal({ problem, onReview, onClose }: Props) {
   );
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}月${d.getDate()}日`;
-}
