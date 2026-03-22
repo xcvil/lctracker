@@ -5,7 +5,8 @@ export interface ProblemProgress {
   stage: number;
   next_due: string;
   retention: number;
-  self_rating: number; // 0=unset, 1=easy, 2=medium, 3=hard
+  self_rating: number;
+  tags: string[];
 }
 
 export interface Problem {

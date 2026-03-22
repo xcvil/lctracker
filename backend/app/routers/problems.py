@@ -2,6 +2,8 @@ from datetime import date
 
 from fastapi import APIRouter, Query
 
+import json as json_mod
+
 from ..database import get_connection
 from ..models import ProblemOut, ProblemProgress, SyncResult
 from ..seed import seed_problems
@@ -23,6 +25,7 @@ def _row_to_problem(r, today: date) -> ProblemOut:
             next_due=r["next_due"],
             retention=retention,
             self_rating=r["self_rating"] or 0,
+            tags=json_mod.loads(r["tags"]) if r["tags"] else [],
         )
     return ProblemOut(
         id=r["id"],
@@ -46,11 +49,12 @@ def list_problems(
     list_name: str | None = Query(None, alias="list"),
     status: str | None = None,
     sort: str | None = None,
+    tag: str | None = None,
 ):
     conn = get_connection()
     today = date.today()
     query = """
-        SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
+        SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating, pp.tags
         FROM problems p
         LEFT JOIN problem_progress pp ON p.id = pp.problem_id
         WHERE 1=1
@@ -80,6 +84,10 @@ def list_problems(
     elif status == "due":
         query += " AND pp.next_due <= ?"
         params.append(today.isoformat())
+    if tag:
+        # SQLite JSON: tags is stored as '["tag1","tag2"]', search with LIKE
+        query += " AND pp.tags LIKE ?"
+        params.append(f'%"{tag}"%')
 
     query += " ORDER BY p.topic, p.id"
     rows = conn.execute(query, params).fetchall()
@@ -110,6 +118,23 @@ def list_problems(
         results.sort(key=lambda p: p.progress.self_rating if p.progress else 999)
 
     return results
+
+
+@router.get("/tags", response_model=list[str])
+def list_tags():
+    """Get all unique tags used across problems."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT tags FROM problem_progress WHERE tags != '[]'"
+    ).fetchall()
+    conn.close()
+    all_tags: set[str] = set()
+    for r in rows:
+        try:
+            all_tags.update(json_mod.loads(r["tags"]))
+        except Exception:
+            pass
+    return sorted(all_tags)
 
 
 @router.get("/topics", response_model=list[str])

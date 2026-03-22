@@ -2,6 +2,8 @@ from datetime import date, datetime
 
 from fastapi import APIRouter, HTTPException
 
+import json as json_mod
+
 from ..database import get_connection
 from ..models import ProblemOut, ProblemProgress, ReviewLogEntry, ReviewRequest, ReviewResponse
 from ..srs import compute_first_review, compute_next_review, compute_retention
@@ -32,6 +34,7 @@ def _row_to_problem(r) -> ProblemOut:
             next_due=r["next_due"],
             retention=retention,
             self_rating=r["self_rating"] or 0,
+            tags=json_mod.loads(r["tags"]) if r["tags"] else [],
         ),
     )
 
@@ -123,6 +126,31 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
     )
 
 
+@router.put("/{problem_id}/tags")
+def update_tags(problem_id: int, body: dict):
+    """Update tags for a problem. Body: {"tags": ["tag1", "tag2"]}"""
+    import json
+    tags = body.get("tags", [])
+    if not isinstance(tags, list):
+        raise HTTPException(status_code=400, detail="Tags must be an array")
+
+    conn = get_connection()
+    progress = conn.execute(
+        "SELECT problem_id FROM problem_progress WHERE problem_id = ?", (problem_id,)
+    ).fetchone()
+    if not progress:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Problem not solved yet")
+
+    conn.execute(
+        "UPDATE problem_progress SET tags = ? WHERE problem_id = ?",
+        (json.dumps(tags), problem_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True, "problem_id": problem_id, "tags": tags}
+
+
 @router.put("/{problem_id}/rating")
 def update_self_rating(problem_id: int, body: dict):
     """Update self-rating for a problem (1=easy, 2=medium, 3=hard, 0=unset)."""
@@ -190,7 +218,7 @@ def get_due_reviews():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating, pp.tags
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due <= ?
@@ -207,7 +235,7 @@ def get_due_today():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating, pp.tags
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due = ?
@@ -224,7 +252,7 @@ def get_overdue():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating, pp.tags
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due < ?

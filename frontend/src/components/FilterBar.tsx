@@ -6,6 +6,7 @@ interface Filters {
   difficulty: string;
   list: string;
   status: string;
+  tag?: string;
 }
 
 interface Props {
@@ -15,9 +16,11 @@ interface Props {
 
 export default function FilterBar({ filters, onChange }: Props) {
   const [topics, setTopics] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     get<string[]>("/problems/topics").then(setTopics);
+    get<string[]>("/problems/tags").then(setTags);
   }, []);
 
   const update = (key: keyof Filters, value: string) => {
@@ -55,6 +58,17 @@ export default function FilterBar({ filters, onChange }: Props) {
         <option value="unsolved">Unsolved</option>
         <option value="due">Due for Review</option>
       </select>
+
+      {tags.length > 0 && (
+        <select value={filters.tag || ""} onChange={(e) => update("tag", e.target.value)}>
+          <option value="">All Tags</option>
+          {tags.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }

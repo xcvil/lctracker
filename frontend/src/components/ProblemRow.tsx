@@ -204,11 +204,18 @@ const RATING_OPTIONS = [
   { value: 3, icon: "!", label: "不确定", className: "rating-hard" },
 ];
 
-function SelfRating({ problemId, current, onUpdate }: { problemId: number; current: number; onUpdate: () => void }) {
+function SelfRating({ problemId, initialRating }: { problemId: number; initialRating: number }) {
+  const [rating, setRating] = useState(initialRating);
+
   const handleClick = async (value: number) => {
-    const newVal = current === value ? 0 : value; // toggle off if same
-    await put(`/reviews/${problemId}/rating`, { rating: newVal });
-    onUpdate();
+    const newVal = rating === value ? 0 : value;
+    const oldVal = rating;
+    setRating(newVal);
+    try {
+      await put(`/reviews/${problemId}/rating`, { rating: newVal });
+    } catch {
+      setRating(oldVal);
+    }
   };
 
   return (
@@ -216,13 +223,116 @@ function SelfRating({ problemId, current, onUpdate }: { problemId: number; curre
       {RATING_OPTIONS.map((opt) => (
         <span
           key={opt.value}
-          className={`rating-btn ${opt.className} ${current === opt.value ? "rating-active" : ""}`}
+          className={`rating-btn ${opt.className} ${rating === opt.value ? "rating-active" : ""}`}
           onClick={() => handleClick(opt.value)}
           title={opt.label}
         >
           {opt.icon}
         </span>
       ))}
+    </div>
+  );
+}
+
+function TagsEditor({ problemId, initialTags }: { problemId: number; initialTags: string[] }) {
+  const [adding, setAdding] = useState(false);
+  const [input, setInput] = useState("");
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
+  const [tags, setTags] = useState(initialTags);
+
+  useEffect(() => {
+    if (adding) {
+      get<string[]>("/problems/tags").then(setAllTags);
+    }
+  }, [adding]);
+
+  const suggestions = input.trim()
+    ? allTags.filter((t) => t.toLowerCase().includes(input.toLowerCase()) && !tags.includes(t))
+    : [];
+
+  const addTag = async (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed || tags.includes(trimmed)) { setInput(""); return; }
+    const newTags = [...tags, trimmed];
+    const oldTags = tags;
+    setTags(newTags);
+    setInput("");
+    setAdding(false);
+    setSelectedIdx(-1);
+    try {
+      await put(`/reviews/${problemId}/tags`, { tags: newTags });
+    } catch {
+      setTags(oldTags); // rollback on failure
+    }
+  };
+
+  const handleRemove = async (tag: string) => {
+    const newTags = tags.filter((t) => t !== tag);
+    const oldTags = tags;
+    setTags(newTags);
+    try {
+      await put(`/reviews/${problemId}/tags`, { tags: newTags });
+    } catch {
+      setTags(oldTags);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIdx((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIdx((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter") {
+      if (selectedIdx >= 0 && suggestions[selectedIdx]) {
+        addTag(suggestions[selectedIdx]);
+      } else {
+        addTag(input);
+      }
+    } else if (e.key === "Escape") {
+      setAdding(false);
+      setInput("");
+    }
+  };
+
+  return (
+    <div className="tags-editor">
+      {tags.map((tag) => (
+        <span key={tag} className="tag-chip">
+          {tag}
+          <span className="tag-remove" onClick={() => handleRemove(tag)}>×</span>
+        </span>
+      ))}
+      {adding ? (
+        <div className="tag-input-wrapper">
+          <input
+            className="tag-input"
+            value={input}
+            onChange={(e) => { setInput(e.target.value); setSelectedIdx(-1); }}
+            onKeyDown={handleKeyDown}
+            onBlur={() => setTimeout(() => { if (!input.trim()) setAdding(false); }, 150)}
+            autoFocus
+            placeholder="tag..."
+          />
+          {suggestions.length > 0 && (
+            <div className="tag-suggestions">
+              {suggestions.map((s, i) => (
+                <div
+                  key={s}
+                  className={`tag-suggestion ${i === selectedIdx ? "tag-suggestion-active" : ""}`}
+                  onMouseDown={() => addTag(s)}
+                >
+                  {s}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <span className="tag-add" onClick={() => setAdding(true)}>+</span>
+      )}
     </div>
   );
 }
@@ -250,9 +360,14 @@ export default function ProblemRow({ problem, onAction, onRefresh }: Props) {
     <>
       <tr>
         <td>
-          <a href={p.url} target="_blank" rel="noopener noreferrer">
-            {p.title}
-          </a>
+          <div className="problem-title-cell">
+            <a href={p.url} target="_blank" rel="noopener noreferrer">
+              {p.title}
+            </a>
+            {p.progress && (
+              <TagsEditor problemId={p.id} initialTags={p.progress.tags} />
+            )}
+          </div>
         </td>
         <td>
           <span className={`difficulty ${diffClass}`}>{p.difficulty}</span>
@@ -282,7 +397,7 @@ export default function ProblemRow({ problem, onAction, onRefresh }: Props) {
         <td>{p.progress ? formatDate(p.progress.next_due) : "—"}</td>
         <td>
           {p.progress ? (
-            <SelfRating problemId={p.id} current={p.progress.self_rating} onUpdate={onRefresh} />
+            <SelfRating problemId={p.id} initialRating={p.progress.self_rating} />
           ) : (
             "—"
           )}

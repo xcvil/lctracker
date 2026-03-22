@@ -33,6 +33,7 @@ def init_db():
             first_solved  TEXT NOT NULL,
             last_reviewed TEXT NOT NULL,
             self_rating   INTEGER NOT NULL DEFAULT 0,
+            tags          TEXT NOT NULL DEFAULT '[]',
             review_count  INTEGER NOT NULL DEFAULT 0,
             stage         INTEGER NOT NULL DEFAULT 0,
             next_due      TEXT NOT NULL
@@ -60,10 +61,15 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_notes_problem ON notes(problem_id);
     """)
 
-    # Migration: add self_rating column if missing (for existing databases)
-    try:
-        conn.execute("ALTER TABLE problem_progress ADD COLUMN self_rating INTEGER NOT NULL DEFAULT 0")
-    except Exception:
-        pass  # column already exists
+    # Migrations for existing databases
+    migrations = [
+        "ALTER TABLE problem_progress ADD COLUMN self_rating INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE problem_progress ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'",
+    ]
+    for sql in migrations:
+        try:
+            conn.execute(sql)
+        except Exception:
+            pass
 
     conn.close()

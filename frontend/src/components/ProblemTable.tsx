@@ -18,12 +18,13 @@ function loadFilters() {
         list: typeof parsed.list === "string" ? parsed.list : "",
         status: typeof parsed.status === "string" ? parsed.status : "",
         sort: typeof parsed.sort === "string" ? parsed.sort : "",
+        tag: typeof parsed.tag === "string" ? parsed.tag : "",
       };
     }
   } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
-  return { topic: "", difficulty: "", list: "", status: "", sort: "" };
+  return { topic: "", difficulty: "", list: "", status: "", sort: "", tag: "" };
 }
 
 function saveFilters(f: Record<string, string>) {
@@ -41,8 +42,8 @@ export default function ProblemTable() {
   const [filters, setFilters] = useState(loadFilters);
   const sort = filters.sort || "";
 
-  const handleFilterChange = (f: { topic: string; difficulty: string; list: string; status: string }) => {
-    const next = { ...f, sort };
+  const handleFilterChange = (f: { topic: string; difficulty: string; list: string; status: string; tag?: string }) => {
+    const next = { ...filters, ...f, sort };
     setFilters(next);
     saveFilters(next);
   };
@@ -64,7 +65,7 @@ export default function ProblemTable() {
 
   if (loading) return <div className="loading">Loading...</div>;
 
-  const hasActiveFilters = filters.topic || filters.difficulty || filters.list || filters.status;
+  const hasActiveFilters = filters.topic || filters.difficulty || filters.list || filters.status || filters.tag;
 
   const thClass = (field: string) =>
     `sortable-col ${sort === field ? "sort-asc" : sort === `${field}_desc` ? "sort-desc" : ""}`;
@@ -81,7 +82,7 @@ export default function ProblemTable() {
           <button
             className="btn btn-primary"
             onClick={() => {
-              const reset = { topic: "", difficulty: "", list: "", status: "", sort: "" };
+              const reset = { topic: "", difficulty: "", list: "", status: "", sort: "", tag: "" };
               setFilters(reset);
               saveFilters(reset);
             }}
