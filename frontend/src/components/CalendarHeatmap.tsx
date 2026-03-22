@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { get } from "../api/client";
-import type { ActivityDay } from "../types";
+import type { ActivityDay, Problem } from "../types";
 import { formatDate } from "../utils";
+import ProblemDetail from "./ProblemDetail";
 
 interface DayProblem {
   id: number;
@@ -29,6 +30,7 @@ const CONF_LABELS = ["", "完全忘了", "很模糊", "勉强记得", "比较清
 export default function CalendarHeatmap({ activity }: Props) {
   const [selectedDay, setSelectedDay] = useState<DayDetail | null>(null);
   const [loadingDay, setLoadingDay] = useState(false);
+  const [detailProblem, setDetailProblem] = useState<Problem | null>(null);
 
   const countMap = new Map(activity.map((d) => [d.date, d.count]));
 
@@ -165,13 +167,26 @@ export default function CalendarHeatmap({ activity }: Props) {
           </div>
           <div className="day-detail-list">
             {selectedDay.problems.map((p) => (
-              <div key={p.id} className="day-detail-item">
+              <div
+                key={p.id}
+                className="day-detail-item day-detail-clickable"
+                onClick={() =>
+                  setDetailProblem({
+                    id: p.id, title: p.title, slug: p.slug, url: p.url,
+                    difficulty: p.difficulty as "Easy" | "Medium" | "Hard",
+                    topic: p.topic,
+                    neetcode_75: false, neetcode_150: false, neetcode_250: false, neetcode_all: true,
+                    progress: p.review_count > 0 || p.is_new ? {
+                      first_solved: "", last_reviewed: "", review_count: p.review_count,
+                      stage: 0, next_due: "", retention: 0,
+                    } : null,
+                  })
+                }
+              >
                 <span className={`difficulty-badge-sm diff-${p.difficulty.toLowerCase()}`}>
                   {p.difficulty}
                 </span>
-                <a href={p.url} target="_blank" rel="noopener noreferrer">
-                  {p.title}
-                </a>
+                <span className="day-detail-title">{p.title}</span>
                 <span className="day-detail-topic">{p.topic}</span>
                 {p.is_new ? (
                   <span className="today-badge today-badge-green">New</span>
@@ -184,6 +199,15 @@ export default function CalendarHeatmap({ activity }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Problem detail modal */}
+      {detailProblem && (
+        <ProblemDetail
+          problem={detailProblem}
+          onClose={() => setDetailProblem(null)}
+          showReviewAction={false}
+        />
       )}
     </div>
   );

@@ -22,6 +22,7 @@ def _row_to_problem(r, today: date) -> ProblemOut:
             stage=r["stage"],
             next_due=r["next_due"],
             retention=retention,
+            self_rating=r["self_rating"] or 0,
         )
     return ProblemOut(
         id=r["id"],
@@ -49,7 +50,7 @@ def list_problems(
     conn = get_connection()
     today = date.today()
     query = """
-        SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due
+        SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
         FROM problems p
         LEFT JOIN problem_progress pp ON p.id = pp.problem_id
         WHERE 1=1
@@ -103,6 +104,10 @@ def list_problems(
         results.sort(key=lambda p: p.progress.next_due if p.progress else "9999")
     elif sort == "due_desc":
         results.sort(key=lambda p: p.progress.next_due if p.progress else "", reverse=True)
+    elif sort == "rating":
+        results.sort(key=lambda p: p.progress.self_rating if p.progress else -1, reverse=True)
+    elif sort == "rating_desc":
+        results.sort(key=lambda p: p.progress.self_rating if p.progress else 999)
 
     return results
 

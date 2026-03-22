@@ -32,6 +32,7 @@ def init_db():
             problem_id    INTEGER PRIMARY KEY REFERENCES problems(id),
             first_solved  TEXT NOT NULL,
             last_reviewed TEXT NOT NULL,
+            self_rating   INTEGER NOT NULL DEFAULT 0,
             review_count  INTEGER NOT NULL DEFAULT 0,
             stage         INTEGER NOT NULL DEFAULT 0,
             next_due      TEXT NOT NULL
@@ -58,4 +59,11 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_review_log_date ON review_log(date);
         CREATE INDEX IF NOT EXISTS idx_notes_problem ON notes(problem_id);
     """)
+
+    # Migration: add self_rating column if missing (for existing databases)
+    try:
+        conn.execute("ALTER TABLE problem_progress ADD COLUMN self_rating INTEGER NOT NULL DEFAULT 0")
+    except Exception:
+        pass  # column already exists
+
     conn.close()

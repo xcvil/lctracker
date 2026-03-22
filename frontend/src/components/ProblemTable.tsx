@@ -108,6 +108,9 @@ export default function ProblemTable() {
               <th className={thClass("due")} onClick={() => handleSortChange(nextSort("due", sort))}>
                 Next Due
               </th>
+              <th className={thClass("rating")} onClick={() => handleSortChange(nextSort("rating", sort))}>
+                Rating
+              </th>
               <th>Action</th>
             </tr>
           </thead>

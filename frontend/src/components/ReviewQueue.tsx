@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useReviews } from "../hooks/useReviews";
 import type { Problem } from "../types";
-import ReviewModal from "./ReviewModal";
+import ProblemDetail from "./ProblemDetail";
 
 function ReviewListItem({
   problem,
@@ -150,9 +150,9 @@ export default function ReviewQueue() {
         </div>
       )}
 
-      {/* Review modal */}
+      {/* Problem detail modal */}
       {modalProblem && (
-        <ReviewModal
+        <ProblemDetail
           problem={modalProblem}
           onReview={markReviewed}
           onClose={() => setModalProblem(null)}

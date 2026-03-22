@@ -31,6 +31,7 @@ def _row_to_problem(r) -> ProblemOut:
             stage=r["stage"],
             next_due=r["next_due"],
             retention=retention,
+            self_rating=r["self_rating"] or 0,
         ),
     )
 
@@ -71,15 +72,28 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
         )
         conn.commit()
     else:
-        # Review — update progress AND write review_log
-        next_due, stage = compute_next_review(progress["stage"], confidence, today)
         review_count = progress["review_count"] + 1
-        conn.execute(
-            """UPDATE problem_progress
-               SET last_reviewed = ?, review_count = ?, stage = ?, next_due = ?
-               WHERE problem_id = ?""",
-            (today.isoformat(), review_count, stage, next_due.isoformat(), problem_id),
-        )
+        due_date = date.fromisoformat(progress["next_due"])
+
+        if today >= due_date:
+            # On or after due date — update stage based on confidence
+            next_due, stage = compute_next_review(progress["stage"], confidence, today)
+            conn.execute(
+                """UPDATE problem_progress
+                   SET last_reviewed = ?, review_count = ?, stage = ?, next_due = ?
+                   WHERE problem_id = ?""",
+                (today.isoformat(), review_count, stage, next_due.isoformat(), problem_id),
+            )
+        else:
+            # Early review — record it but don't change stage/next_due
+            stage = progress["stage"]
+            next_due = due_date
+            conn.execute(
+                """UPDATE problem_progress
+                   SET last_reviewed = ?, review_count = ?
+                   WHERE problem_id = ?""",
+                (today.isoformat(), review_count, problem_id),
+            )
 
         conn.execute(
             "INSERT INTO review_log (problem_id, reviewed_at, date, confidence) VALUES (?, ?, ?, ?)",
@@ -107,6 +121,30 @@ def record_review(problem_id: int, body: ReviewRequest | None = None):
         next_due=next_due.isoformat(),
         confidence=confidence,
     )
+
+
+@router.put("/{problem_id}/rating")
+def update_self_rating(problem_id: int, body: dict):
+    """Update self-rating for a problem (1=easy, 2=medium, 3=hard, 0=unset)."""
+    rating = body.get("rating", 0)
+    if rating not in (0, 1, 2, 3):
+        raise HTTPException(status_code=400, detail="Rating must be 0-3")
+
+    conn = get_connection()
+    progress = conn.execute(
+        "SELECT problem_id FROM problem_progress WHERE problem_id = ?", (problem_id,)
+    ).fetchone()
+    if not progress:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Problem not solved yet")
+
+    conn.execute(
+        "UPDATE problem_progress SET self_rating = ? WHERE problem_id = ?",
+        (rating, problem_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True, "problem_id": problem_id, "rating": rating}
 
 
 @router.delete("/{problem_id}")
@@ -152,7 +190,7 @@ def get_due_reviews():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due <= ?
@@ -169,7 +207,7 @@ def get_due_today():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due = ?
@@ -186,7 +224,7 @@ def get_overdue():
     conn = get_connection()
     today = date.today().isoformat()
     rows = conn.execute(
-        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due
+        """SELECT p.*, pp.first_solved, pp.last_reviewed, pp.review_count, pp.stage, pp.next_due, pp.self_rating
            FROM problems p
            JOIN problem_progress pp ON p.id = pp.problem_id
            WHERE pp.next_due < ?

@@ -7,7 +7,8 @@ class ProblemProgress(BaseModel):
     review_count: int
     stage: int
     next_due: str
-    retention: float = 100.0  # current memory retention %
+    retention: float = 100.0
+    self_rating: int = 0  # 0=unset, 1=easy, 2=medium, 3=hard
 
 
 class ProblemOut(BaseModel):
