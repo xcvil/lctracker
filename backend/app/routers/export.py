@@ -39,6 +39,14 @@ def export_data():
            ORDER BY p.slug, n.session"""
     ).fetchall()
 
+    # Solutions
+    solution_rows = conn.execute(
+        """SELECT p.slug, s.title, s.code, s.time_complexity, s.space_complexity, s.created_at, s.updated_at
+           FROM solutions s
+           JOIN problems p ON p.id = s.problem_id
+           ORDER BY p.slug, s.created_at"""
+    ).fetchall()
+
     conn.close()
 
     data = {
@@ -76,6 +84,18 @@ def export_data():
                 "updated_at": r["updated_at"],
             }
             for r in note_rows
+        ],
+        "solutions": [
+            {
+                "slug": r["slug"],
+                "title": r["title"],
+                "code": r["code"],
+                "time_complexity": r["time_complexity"],
+                "space_complexity": r["space_complexity"],
+                "created_at": r["created_at"],
+                "updated_at": r["updated_at"],
+            }
+            for r in solution_rows
         ],
     }
 
@@ -158,6 +178,30 @@ def import_data(file: UploadFile):
             )
         imported_notes += 1
 
+    # Import solutions
+    imported_solutions = 0
+    for s in content.get("solutions", []):
+        pid = slug_to_id.get(s["slug"])
+        if not pid:
+            continue
+        # Check for duplicate by title + created_at
+        existing = conn.execute(
+            "SELECT id FROM solutions WHERE problem_id = ? AND title = ? AND created_at = ?",
+            (pid, s["title"], s["created_at"]),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                "UPDATE solutions SET code=?, time_complexity=?, space_complexity=?, updated_at=? WHERE id=?",
+                (s["code"], s["time_complexity"], s["space_complexity"], s["updated_at"], existing["id"]),
+            )
+        else:
+            conn.execute(
+                """INSERT INTO solutions (problem_id, title, code, time_complexity, space_complexity, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (pid, s["title"], s["code"], s["time_complexity"], s["space_complexity"], s["created_at"], s["updated_at"]),
+            )
+        imported_solutions += 1
+
     conn.commit()
 
     # Auto-fix data integrity after import
@@ -169,6 +213,7 @@ def import_data(file: UploadFile):
         "imported_progress": imported_progress,
         "imported_reviews": imported_reviews,
         "imported_notes": imported_notes,
+        "imported_solutions": imported_solutions,
         **fixes,
     }
 

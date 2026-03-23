@@ -62,6 +62,31 @@ class NoteUpdate(BaseModel):
     content: str
 
 
+class SolutionOut(BaseModel):
+    id: int
+    problem_id: int
+    title: str
+    code: str
+    time_complexity: str
+    space_complexity: str
+    created_at: str
+    updated_at: str
+
+
+class SolutionCreate(BaseModel):
+    title: str = ""
+    code: str = ""
+    time_complexity: str = ""
+    space_complexity: str = ""
+
+
+class SolutionUpdate(BaseModel):
+    title: str | None = None
+    code: str | None = None
+    time_complexity: str | None = None
+    space_complexity: str | None = None
+
+
 class ActivityDay(BaseModel):
     date: str
     count: int

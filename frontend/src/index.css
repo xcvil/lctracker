@@ -348,6 +348,115 @@ body {
   color: var(--primary);
 }
 
+/* Solutions */
+.solutions-panel {
+  margin-top: 0.5rem;
+}
+
+.solutions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.solutions-header h4 {
+  color: var(--text);
+}
+
+.solution-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.solution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.solution-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.solution-title:hover {
+  color: var(--primary);
+}
+
+.solution-title-input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  flex: 1;
+  min-width: 150px;
+}
+
+.solution-complexity {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.complexity-input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  width: 90px;
+  outline: none;
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.complexity-input:focus {
+  border-color: var(--primary);
+}
+
+.complexity-tag {
+  font-size: 0.7rem;
+  font-family: "SF Mono", "Fira Code", monospace;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.time-tag {
+  background: rgba(79, 70, 229, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+}
+
+.space-tag {
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.solution-delete-btn {
+  background: none;
+  color: var(--hard);
+  border: 1px solid transparent;
+  margin-left: auto;
+}
+
+.solution-delete-btn:hover {
+  border-color: var(--hard);
+}
+
 /* Self Rating */
 .self-rating {
   display: flex;

@@ -56,6 +56,18 @@ def init_db():
             updated_at    TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS solutions (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            problem_id    INTEGER NOT NULL REFERENCES problems(id),
+            title         TEXT NOT NULL DEFAULT '',
+            code          TEXT NOT NULL DEFAULT '',
+            time_complexity  TEXT NOT NULL DEFAULT '',
+            space_complexity TEXT NOT NULL DEFAULT '',
+            created_at    TEXT NOT NULL,
+            updated_at    TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_solutions_problem ON solutions(problem_id);
         CREATE INDEX IF NOT EXISTS idx_progress_next_due ON problem_progress(next_due);
         CREATE INDEX IF NOT EXISTS idx_review_log_date ON review_log(date);
         CREATE INDEX IF NOT EXISTS idx_notes_problem ON notes(problem_id);

@@ -188,6 +188,7 @@ def reset_progress(problem_id: int):
     conn.execute("DELETE FROM problem_progress WHERE problem_id = ?", (problem_id,))
     conn.execute("DELETE FROM review_log WHERE problem_id = ?", (problem_id,))
     conn.execute("DELETE FROM notes WHERE problem_id = ?", (problem_id,))
+    conn.execute("DELETE FROM solutions WHERE problem_id = ?", (problem_id,))
     conn.commit()
     conn.close()
     return {"ok": True, "problem_id": problem_id}

@@ -47,6 +47,17 @@ export interface Note {
   updated_at: string;
 }
 
+export interface Solution {
+  id: number;
+  problem_id: number;
+  title: string;
+  code: string;
+  time_complexity: string;
+  space_complexity: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ActivityDay {
   date: string;
   count: number;

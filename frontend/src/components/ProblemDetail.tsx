@@ -5,6 +5,7 @@ import { get, put } from "../api/client";
 import type { Note, Problem, ReviewLogEntry } from "../types";
 import { daysUntil, dueText, formatDate } from "../utils";
 import ConfidenceButtons from "./ConfidenceButtons";
+import SolutionsPanel from "./SolutionsPanel";
 
 const STAGE_INTERVALS = [1, 2, 4, 7, 15, 30];
 const CONF_LABELS = ["", "完全忘了", "很模糊", "勉强记得", "比较清晰", "非常熟练"];
@@ -247,6 +248,11 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
               ))}
             </div>
           )}
+        </div>
+
+        {/* Solutions */}
+        <div className="detail-section">
+          <SolutionsPanel problemId={problem.id} />
         </div>
 
         {/* Close */}
