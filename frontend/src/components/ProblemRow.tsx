@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import Markdown from "./Markdown";
+import NoteTextarea from "./NoteTextarea";
 import { del, get, put } from "../api/client";
 import type { Note, Problem, ReviewLogEntry } from "../types";
 import { dueText, formatDate } from "../utils";
@@ -167,12 +167,7 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
                   <div className="stage-popover-note">
                     {editing ? (
                       <div className="note-editor">
-                        <textarea
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                          rows={4}
-                          placeholder="Write your notes in Markdown..."
-                        />
+                        <NoteTextarea value={editContent} onChange={setEditContent} rows={4} />
                         <div className="note-editor-actions">
                           <button className="btn btn-primary btn-sm" onClick={() => handleSaveNote(note.id)}>Save</button>
                           <button className="btn btn-secondary btn-sm" onClick={() => setEditing(false)}>Cancel</button>
@@ -180,7 +175,7 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
                       </div>
                     ) : note.content ? (
                       <div className="note-content markdown-body clickable-note" onClick={() => { setEditing(true); setEditContent(note.content); }}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
+                        <Markdown>{note.content}</Markdown>
                       </div>
                     ) : (
                       <div className="notes-empty clickable-note" onClick={() => { setEditing(true); setEditContent(""); }}>

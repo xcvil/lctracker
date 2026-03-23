@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import Markdown from "./Markdown";
+import NoteTextarea from "./NoteTextarea";
 import { get, put } from "../api/client";
 import type { Note } from "../types";
 import { formatDate } from "../utils";
@@ -58,12 +58,7 @@ export default function NotesPanel({ problemId }: Props) {
             </div>
             {editingId === note.id ? (
               <div className="note-editor">
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={6}
-                  placeholder="Write your notes in Markdown..."
-                />
+                <NoteTextarea value={editContent} onChange={setEditContent} />
                 <div className="note-editor-actions">
                   <button
                     className="btn btn-primary btn-sm"
@@ -84,7 +79,7 @@ export default function NotesPanel({ problemId }: Props) {
                 className="note-content markdown-body clickable-note"
                 onClick={() => startEdit(note)}
               >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
+                <Markdown>{note.content}</Markdown>
               </div>
             ) : (
               <div

@@ -1534,7 +1534,8 @@ h2 {
   gap: 0.5rem;
 }
 
-.note-editor textarea {
+.note-editor textarea,
+.note-textarea {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);

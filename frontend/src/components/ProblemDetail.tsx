@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import Markdown from "./Markdown";
+import NoteTextarea from "./NoteTextarea";
 import { get, put } from "../api/client";
 import type { Note, Problem, ReviewLogEntry } from "../types";
 import { daysUntil, dueText, formatDate } from "../utils";
@@ -186,12 +186,7 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
                     <div className="detail-dot-note">
                       {editingNote ? (
                         <div className="note-editor">
-                          <textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            rows={4}
-                            placeholder="Write your notes in Markdown..."
-                          />
+                          <NoteTextarea value={editContent} onChange={setEditContent} rows={4} />
                           <div className="note-editor-actions">
                             <button className="btn btn-primary btn-sm" onClick={() => handleSaveNote(note.id)}>Save</button>
                             <button className="btn btn-secondary btn-sm" onClick={() => setEditingNote(false)}>Cancel</button>
@@ -199,7 +194,7 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
                         </div>
                       ) : note.content ? (
                         <div className="note-content markdown-body clickable-note" onClick={() => { setEditingNote(true); setEditContent(note.content); }}>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{note.content}</ReactMarkdown>
+                          <Markdown>{note.content}</Markdown>
                         </div>
                       ) : (
                         <div className="notes-empty clickable-note" onClick={() => { setEditingNote(true); setEditContent(""); }}>
