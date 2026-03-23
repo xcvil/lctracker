@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "./Markdown";
 import NoteTextarea from "./NoteTextarea";
 import { get, put } from "../api/client";
@@ -36,6 +36,7 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
   const [selectedDot, setSelectedDot] = useState<number | null>(null);
   const [editingNote, setEditingNote] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const mouseDownTarget = useRef<EventTarget | null>(null);
 
   const fetchData = useCallback(async () => {
     const [h, n] = await Promise.all([
@@ -86,7 +87,11 @@ export default function ProblemDetail({ problem, onReview, onClose, showReviewAc
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onMouseDown={(e) => { mouseDownTarget.current = e.target; }}
+      onMouseUp={(e) => { if (e.target === mouseDownTarget.current && e.target === e.currentTarget) onClose(); }}
+    >
       <div className="detail-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="detail-header">

@@ -99,7 +99,11 @@ function StageBar({ problemId, stage, progress }: { problemId: number; stage: nu
         )}
       </div>
       {openDot !== null && (
-        <div className="stage-popover-overlay" onClick={() => { setOpenDot(null); setEditing(false); }}>
+        <div
+          className="stage-popover-overlay"
+          onMouseDown={(e) => { (e.currentTarget as any)._downTarget = e.target; }}
+          onMouseUp={(e) => { if (e.target === (e.currentTarget as any)._downTarget && e.target === e.currentTarget) { setOpenDot(null); setEditing(false); } }}
+        >
           <div className="stage-popover" style={getPopoverStyle()} onClick={(e) => e.stopPropagation()}>
             {/* Overview header — always shown */}
             <div className="stage-popover-header">

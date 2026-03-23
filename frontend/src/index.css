@@ -547,6 +547,10 @@ body {
 }
 
 .stage-popover {
+  resize: both;
+  overflow: auto;
+  min-width: 220px;
+  min-height: 150px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1118,10 +1122,14 @@ h2 {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 2rem;
-  width: 90%;
-  max-width: 520px;
-  max-height: 80vh;
-  overflow-y: auto;
+  width: 520px;
+  height: 70vh;
+  overflow: auto;
+  resize: both;
+  min-width: 320px;
+  min-height: 200px;
+  max-width: 95vw;
+  max-height: 95vh;
 }
 
 .modal-header {
@@ -1234,10 +1242,14 @@ h2 {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 2rem;
-  width: 90%;
-  max-width: 560px;
-  max-height: 85vh;
-  overflow-y: auto;
+  width: 560px;
+  height: 80vh;
+  overflow: auto;
+  resize: both;
+  min-width: 320px;
+  min-height: 300px;
+  max-width: 95vw;
+  max-height: 95vh;
 }
 
 .detail-header {
