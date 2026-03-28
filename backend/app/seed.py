@@ -47,8 +47,9 @@ def seed_problems():
 
     # Remove problems that are no longer in the seed JSON
     # Must clean up related user data first (progress, reviews, notes)
+    # Only delete non-custom problems that are no longer in seed (protect 面经)
     stale_ids = conn.execute(
-        f"SELECT id FROM problems WHERE slug NOT IN ({','.join('?' * len(seed_slugs))})",
+        f"SELECT id FROM problems WHERE is_custom = 0 AND slug NOT IN ({','.join('?' * len(seed_slugs))})",
         list(seed_slugs),
     ).fetchall()
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import get_connection, init_db
-from .routers import activity, export, notes, problems, reviews, solutions
+from .routers import activity, custom, export, notes, problems, reviews, solutions
 from .routers.export import fix_data_integrity
 from .seed import seed_problems
 
@@ -37,3 +37,4 @@ app.include_router(activity.router)
 app.include_router(notes.router)
 app.include_router(export.router)
 app.include_router(solutions.router)
+app.include_router(custom.router)

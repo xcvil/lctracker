@@ -25,7 +25,11 @@ def init_db():
             neetcode_75   BOOLEAN NOT NULL DEFAULT 0,
             neetcode_150  BOOLEAN NOT NULL DEFAULT 0,
             neetcode_250  BOOLEAN NOT NULL DEFAULT 0,
-            neetcode_all  BOOLEAN NOT NULL DEFAULT 1
+            neetcode_all  BOOLEAN NOT NULL DEFAULT 1,
+            is_custom     BOOLEAN NOT NULL DEFAULT 0,
+            company       TEXT NOT NULL DEFAULT '',
+            source        TEXT NOT NULL DEFAULT '',
+            description   TEXT NOT NULL DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS problem_progress (
@@ -77,6 +81,10 @@ def init_db():
     migrations = [
         "ALTER TABLE problem_progress ADD COLUMN self_rating INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE problem_progress ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'",
+        "ALTER TABLE problems ADD COLUMN is_custom BOOLEAN NOT NULL DEFAULT 0",
+        "ALTER TABLE problems ADD COLUMN company TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE problems ADD COLUMN source TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE problems ADD COLUMN description TEXT NOT NULL DEFAULT ''",
     ]
     for sql in migrations:
         try:
