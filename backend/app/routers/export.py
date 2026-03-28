@@ -47,11 +47,18 @@ def export_data():
            ORDER BY p.slug, s.created_at"""
     ).fetchall()
 
+    # Custom problems
+    custom_rows = conn.execute(
+        """SELECT slug, title, url, difficulty, topic, company, source, description
+           FROM problems WHERE is_custom = 1
+           ORDER BY id"""
+    ).fetchall()
+
     conn.close()
 
     data = {
         "exported_at": datetime.now().isoformat(),
-        "version": 1,
+        "version": 2,
         "progress": [
             {
                 "slug": r["slug"],
@@ -96,6 +103,19 @@ def export_data():
                 "updated_at": r["updated_at"],
             }
             for r in solution_rows
+        ],
+        "custom_problems": [
+            {
+                "slug": r["slug"],
+                "title": r["title"],
+                "url": r["url"],
+                "difficulty": r["difficulty"],
+                "topic": r["topic"],
+                "company": r["company"],
+                "source": r["source"],
+                "description": r["description"],
+            }
+            for r in custom_rows
         ],
     }
 
@@ -202,6 +222,25 @@ def import_data(file: UploadFile):
             )
         imported_solutions += 1
 
+    # Import custom problems
+    imported_custom = 0
+    for cp in content.get("custom_problems", []):
+        existing = conn.execute("SELECT id FROM problems WHERE slug = ?", (cp["slug"],)).fetchone()
+        if not existing:
+            conn.execute(
+                """INSERT INTO problems (title, slug, url, difficulty, topic,
+                   neetcode_75, neetcode_150, neetcode_250, neetcode_all,
+                   is_custom, company, source, description)
+                   VALUES (?, ?, ?, ?, ?, 0, 0, 0, 0, 1, ?, ?, ?)""",
+                (cp["title"], cp["slug"], cp.get("url", ""), cp["difficulty"], cp["topic"],
+                 cp.get("company", ""), cp.get("source", ""), cp.get("description", "")),
+            )
+            imported_custom += 1
+            # Update slug_to_id for subsequent imports
+            new_id = conn.execute("SELECT id FROM problems WHERE slug = ?", (cp["slug"],)).fetchone()
+            if new_id:
+                slug_to_id[cp["slug"]] = new_id["id"]
+
     conn.commit()
 
     # Auto-fix data integrity after import
@@ -214,6 +253,7 @@ def import_data(file: UploadFile):
         "imported_reviews": imported_reviews,
         "imported_notes": imported_notes,
         "imported_solutions": imported_solutions,
+        "imported_custom": imported_custom,
         **fixes,
     }
 

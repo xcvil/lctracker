@@ -61,13 +61,22 @@ def list_problems(
     """
     params: list = []
 
+    # By default exclude custom problems unless specifically requesting them
+    if list_name == "custom":
+        query += " AND p.is_custom = 1"
+    elif list_name:
+        pass  # handled below
+    else:
+        query += " AND p.is_custom = 0"
+
     if topic:
         query += " AND p.topic = ?"
         params.append(topic)
     if difficulty:
         query += " AND p.difficulty = ?"
         params.append(difficulty)
-    if list_name:
+    if list_name and list_name != "custom":
+        query += " AND p.is_custom = 0"
         col_map = {
             "neetcode_75": "p.neetcode_75",
             "neetcode_150": "p.neetcode_150",
