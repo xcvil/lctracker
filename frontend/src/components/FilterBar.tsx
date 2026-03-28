@@ -34,6 +34,7 @@ export default function FilterBar({ filters, onChange }: Props) {
         <option value="neetcode_75">NeetCode 75</option>
         <option value="neetcode_150">NeetCode 150</option>
         <option value="neetcode_250">NeetCode 250</option>
+        <option value="custom">面经</option>
       </select>
 
       <select value={filters.topic} onChange={(e) => update("topic", e.target.value)}>

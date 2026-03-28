@@ -69,6 +69,7 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/problems">Problems</NavLink>
           <NavLink to="/notes">Notes</NavLink>
+          <NavLink to="/custom">面经</NavLink>
           <NavLink to="/activity">Activity</NavLink>
         </div>
         <div className="nav-actions">

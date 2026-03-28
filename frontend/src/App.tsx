@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ActivityChart from "./components/ActivityChart";
+import CustomProblems from "./components/CustomProblems";
 import Layout from "./components/Layout";
 import NotesSearch from "./components/NotesSearch";
 import ProblemTable from "./components/ProblemTable";
@@ -13,6 +14,7 @@ export default function App() {
           <Route index element={<ReviewQueue />} />
           <Route path="problems" element={<ProblemTable />} />
           <Route path="notes" element={<NotesSearch />} />
+          <Route path="custom" element={<CustomProblems />} />
           <Route path="activity" element={<ActivityChart />} />
         </Route>
       </Routes>
