@@ -14,6 +14,10 @@ interface DayProblem {
   confidence: number;
   is_new: boolean;
   review_count: number;
+  stage: number;
+  last_reviewed: string;
+  next_due: string;
+  retention: number;
 }
 
 interface DayDetail {
@@ -184,8 +188,8 @@ export default function CalendarHeatmap({ activity }: Props) {
                     topic: p.topic,
                     neetcode_75: false, neetcode_150: false, neetcode_250: false, neetcode_all: true,
                     progress: p.review_count > 0 || p.is_new ? {
-                      first_solved: "", last_reviewed: "", review_count: p.review_count,
-                      stage: 0, next_due: "", retention: 0,
+                      first_solved: "", last_reviewed: p.last_reviewed || "", review_count: p.review_count,
+                      stage: p.stage || 0, next_due: p.next_due || "", retention: p.retention ?? 0,
                     } : null,
                   })
                 }

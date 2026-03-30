@@ -113,7 +113,8 @@ def get_day_detail(day: str):
     # Reviews on this day
     review_rows = conn.execute(
         """SELECT p.id, p.title, p.slug, p.url, p.difficulty, p.topic,
-                  rl.confidence, pp.first_solved, pp.review_count
+                  rl.confidence, pp.first_solved, pp.review_count,
+                  pp.stage, pp.last_reviewed, pp.self_rating, pp.next_due
            FROM review_log rl
            JOIN problems p ON p.id = rl.problem_id
            LEFT JOIN problem_progress pp ON pp.problem_id = rl.problem_id
@@ -126,7 +127,8 @@ def get_day_detail(day: str):
     # First solves on this day (not in review_log)
     solve_rows = conn.execute(
         """SELECT p.id, p.title, p.slug, p.url, p.difficulty, p.topic,
-                  pp.first_solved, pp.review_count
+                  pp.first_solved, pp.review_count,
+                  pp.stage, pp.last_reviewed, pp.self_rating, pp.next_due
            FROM problem_progress pp
            JOIN problems p ON p.id = pp.problem_id
            WHERE pp.first_solved = ?
@@ -138,13 +140,26 @@ def get_day_detail(day: str):
 
     conn.close()
 
+    today = date.today()
     results = []
+
+    def _calc_retention(row):
+        last = row["last_reviewed"]
+        if not last:
+            return 0.0
+        days_since = (today - date.fromisoformat(last)).days
+        return compute_retention(row["stage"] or 0, days_since, row["self_rating"] or 0)
+
     for r in solve_rows:
         results.append({
             "id": r["id"], "title": r["title"], "slug": r["slug"],
             "url": r["url"], "difficulty": r["difficulty"], "topic": r["topic"],
             "confidence": 0, "is_new": True,
             "review_count": r["review_count"] or 0,
+            "stage": r["stage"] or 0,
+            "last_reviewed": r["last_reviewed"] or "",
+            "next_due": r["next_due"] or "",
+            "retention": _calc_retention(r),
         })
     for r in review_rows:
         results.append({
@@ -153,6 +168,10 @@ def get_day_detail(day: str):
             "confidence": r["confidence"],
             "is_new": r["first_solved"] == day,
             "review_count": r["review_count"] or 0,
+            "stage": r["stage"] or 0,
+            "last_reviewed": r["last_reviewed"] or "",
+            "next_due": r["next_due"] or "",
+            "retention": _calc_retention(r),
         })
 
     return {"date": day, "problems": results}
