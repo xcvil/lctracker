@@ -3,6 +3,7 @@ import { del, get, post, put } from "../api/client";
 import { formatDate } from "../utils";
 import Markdown from "./Markdown";
 import NoteTextarea from "./NoteTextarea";
+import SolutionsPanel from "./SolutionsPanel";
 
 interface CustomProblem {
   id: number;
@@ -41,9 +42,9 @@ function AddProblemForm({ onAdded }: { onAdded: () => void }) {
   const handleSubmit = async () => {
     if (!title.trim()) return;
     await post("/custom", { title, difficulty, topic, company, source, description, url });
-    setTitle(""); setCompany(""); setSource(""); setDescription(""); setUrl("");
+    setTitle(""); setDifficulty("Medium"); setTopic(""); setCompany(""); setSource(""); setDescription(""); setUrl("");
     setOpen(false);
-    onAdded();
+    await onAdded();
   };
 
   if (!open) {
@@ -178,6 +179,7 @@ function CustomProblemCard({ problem, onUpdate }: { problem: CustomProblem; onUp
               <Markdown>{problem.description}</Markdown>
             </div>
           )}
+          <SolutionsPanel problemId={problem.id} />
           <div className="custom-card-actions">
             <button className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>Edit</button>
             {!problem.progress && (
